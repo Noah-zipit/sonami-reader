@@ -35,7 +35,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import mihon.feature.support.SupportUsScreen
+import eu.kanade.tachiyomi.ui.browse.SonamiHiddenExtensionsScreen
+import mihon.feature.support.SonamiAboutScreen
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 
@@ -73,8 +74,9 @@ data object MoreTab : Tab {
             onClickStats = { navigator.push(StatsScreen()) },
             onClickDataAndStorage = { navigator.push(SettingsScreen(SettingsScreen.Destination.DataAndStorage)) },
             onClickSettings = { navigator.push(SettingsScreen()) },
-            onClickSupport = { navigator.push(SupportUsScreen()) },
+            onClickSupport = { navigator.push(SonamiAboutScreen()) },
             onClickAbout = { navigator.push(SettingsScreen(SettingsScreen.Destination.About)) },
+            onClickExtensions = { navigator.push(SonamiHiddenExtensionsScreen()) },
         )
     }
 }

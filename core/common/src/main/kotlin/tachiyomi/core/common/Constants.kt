@@ -1,11 +1,12 @@
 package tachiyomi.core.common
 
 object Constants {
-    const val URL_HELP = "https://mihon.app/docs/guides/troubleshooting/"
-    const val URL_HELP_UPCOMING = "https://mihon.app/docs/faq/updates/upcoming"
-    const val URL_DONATE_PATREON = "https://patreon.com/mihon/membership"
-    const val URL_DONATE_OPENCOLLECTIVE = "https://opencollective.com/mihon/contribute"
-    const val URL_DISCORD = "https://discord.gg/mihon"
+    // SONAMI: Mihon help/donation/discord links removed; Sonami has no Mihon pages.
+    const val URL_HELP = ""
+    const val URL_HELP_UPCOMING = ""
+    const val URL_DONATE_PATREON = ""
+    const val URL_DONATE_OPENCOLLECTIVE = ""
+    const val URL_DISCORD = ""
 
     const val MANGA_EXTRA = "manga"
 

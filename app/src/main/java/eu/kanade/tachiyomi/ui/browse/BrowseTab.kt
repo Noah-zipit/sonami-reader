@@ -1,31 +1,34 @@
 package eu.kanade.tachiyomi.ui.browse
 
+// SONAMI (fork of Mihon, Apache 2.0): unified Browse tab.
+// Mihon's Browse had three tabs — Sources, Extensions, Migrate — all removed
+// from normal use. This tab is a single Sonami screen: one search across all
+// installed sources, plus the installed sources' popular listings. Extension
+// and migration management live only behind the hidden unlock.
+
 import androidx.compose.animation.graphics.res.animatedVectorResource
 import androidx.compose.animation.graphics.vector.AnimatedImageVector
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.Navigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.LocalTabNavigator
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import dev.zacsweers.metrox.viewmodel.metroViewModel
-import eu.kanade.presentation.components.TabbedScreen
+import eu.kanade.presentation.browse.SonamiBrowseScreen
+import eu.kanade.presentation.browse.SourceUiModel
 import eu.kanade.presentation.util.Tab
 import eu.kanade.presentation.util.rememberAnimatedVectorPainter
 import eu.kanade.tachiyomi.R
-import eu.kanade.tachiyomi.ui.browse.extension.ExtensionsViewModel
-import eu.kanade.tachiyomi.ui.browse.extension.extensionsTab
-import eu.kanade.tachiyomi.ui.browse.migration.sources.migrateSourceTab
+import eu.kanade.tachiyomi.ui.browse.source.SourcesViewModel
+import eu.kanade.tachiyomi.ui.browse.source.browse.BrowseSourceScreen
 import eu.kanade.tachiyomi.ui.browse.source.globalsearch.GlobalSearchScreen
-import eu.kanade.tachiyomi.ui.browse.source.sourcesTab
 import eu.kanade.tachiyomi.ui.main.MainActivity
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.receiveAsFlow
+import tachiyomi.domain.source.interactor.GetRemoteManga
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
 
@@ -48,39 +51,24 @@ data object BrowseTab : Tab {
         navigator.push(GlobalSearchScreen())
     }
 
-    private val switchToExtensionTabChannel = Channel<Unit>(1, BufferOverflow.DROP_OLDEST)
-
-    fun showExtension() {
-        switchToExtensionTabChannel.trySend(Unit)
-    }
-
     @Composable
     override fun Content() {
         val context = LocalContext.current
+        val navigator = LocalNavigator.currentOrThrow
+        val sourcesViewModel = metroViewModel<SourcesViewModel>()
+        val sourcesState by sourcesViewModel.state.collectAsStateWithLifecycle()
+        val installedSources = sourcesState.items
+            .filterIsInstance<SourceUiModel.Item>()
+            .map { it.source }
 
-        // Hoisted for extensions tab's search bar
-        val extensionsViewModel = metroViewModel<ExtensionsViewModel>()
-        val extensionsSearchQuery by extensionsViewModel.searchQuery.collectAsStateWithLifecycle()
-
-        val tabs = listOf(
-            sourcesTab(),
-            extensionsTab(extensionsViewModel),
-            migrateSourceTab(),
+        SonamiBrowseScreen(
+            installedSources = installedSources,
+            onSearch = { query -> navigator.push(GlobalSearchScreen(query)) },
+            onClickSource = { source ->
+                navigator.push(BrowseSourceScreen(source.id, GetRemoteManga.QUERY_POPULAR))
+            },
+            onClickSetup = { navigator.push(SonamiSetupScreen()) },
         )
-
-        val state = rememberPagerState { tabs.size }
-
-        TabbedScreen(
-            titleRes = MR.strings.browse,
-            tabs = tabs,
-            state = state,
-            searchQuery = extensionsSearchQuery,
-            onChangeSearchQuery = extensionsViewModel::search,
-        )
-        LaunchedEffect(Unit) {
-            switchToExtensionTabChannel.receiveAsFlow()
-                .collectLatest { state.scrollToPage(1) }
-        }
 
         LaunchedEffect(Unit) {
             (context as? MainActivity)?.ready = true
