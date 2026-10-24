@@ -81,10 +81,30 @@ community notes.
 
 Requires JDK 21, Android SDK platform 37 (compileSdk 37.2), build-tools
 36, NDK 29.0.14206865 (see `gradle/mihon.versions.toml`). Build with
-`./gradlew :app:assembleStandardRelease` (or the `foss` variant).
+`./gradlew assembleRelease -Pdist=ci` (Mihon CI, build.yml) or
+`./gradlew assembleFoss -Pdist=foss`. There is NO
+`assembleStandardRelease` task: the app defines no product flavors,
+only build types debug/release/foss/nightly/benchmark, so
+`assembleStandardRelease` fails with "task not found" (proven on
+Kaggle 2026-10-24).
 The build is unsigned debug-style unless a keystore is supplied; the
 APK in `app/build/outputs/apk/` is a development build, not a release
 signed for distribution.
+
+## Kaggle build failure, 2026-10-24 23:48 PKT (verified)
+Notebook (private, unpublished, Kaggle user Noah Ext) ran with
+Internet ON, CPU. Two separate failures, no APK produced:
+1. Android SDK platform 37 UNAVAILABLE via sdkmanager, stable and
+   channel 3 (canary) both: "Failed to find package
+   'platforms;android-37'", no platforms/ directory created.
+   Platform 37 is Android 17, "Cinnamon Bun Preview" in Android
+   Studio's SDK Manager, not a stable platform package.
+2. Gradle task name wrong: `./gradlew :app:assembleStandardRelease`
+   failed "task 'assembleStandardRelease' not found in project ':app'"
+   (Gradle 9.8.1, 2m 44s). Correct task is assembleRelease (see above).
+Next attempt must fix the task name first, then solve platform 37
+(newer cmdline-tools / preview package, or a compileSdk 36 test build
+- a test only, not a silent downgrade of the shipped fork).
 
 ## Build blocker, 2026-10-25 (verified, environment, not code)
 
