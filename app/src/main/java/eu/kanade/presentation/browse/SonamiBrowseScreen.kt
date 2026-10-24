@@ -84,7 +84,7 @@ fun SonamiBrowseScreen(
                     Column {
                         TextPreferenceWidget(
                             title = "Famous 5 sources",
-                            subtitle = "Asura Scans, MangaDex, MangaFire, MangaPark, ManhuaPlus",
+                            subtitle = "Asura Scans, MangaDex, MangaFire, MangaKakalot, ManhuaPlus",
                             icon = MaterialSymbols.Rounded.Book,
                             onPreferenceClick = onClickSetup,
                         )

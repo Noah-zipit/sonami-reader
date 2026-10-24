@@ -56,13 +56,15 @@ Shipped set, verified against the live Keiyoushi index on 2026-10-24:
 | Asura Scans | eu.kanade.tachiyomi.extension.en.asurascans | 1.6.69 |
 | MangaDex | eu.kanade.tachiyomi.extension.all.mangadex | 1.6.0 |
 | MangaFire | eu.kanade.tachiyomi.extension.all.mangafire | 1.6.34 |
-| MangaPark | eu.kanade.tachiyomi.extension.en.mangaparktv | 1.6.55 |
+| MangaKakalot | eu.kanade.tachiyomi.extension.en.mangakakalot | 1.6.26 |
 | ManhuaPlus | eu.kanade.tachiyomi.extension.en.manhuaplus | 1.6.63 |
 
 Swaps from the original "famous 5" list, per the build spec: Comick has
 no main Keiyoushi extension (only a "Comick (Unoriginal)" mirror), so
-MangaFire takes its place; MangaKakalot has no Keiyoushi extension at
-all, so MangaPark takes its place.
+MangaFire takes its place. MangaKakalot was verified in the live
+Keiyoushi index (v1.6.26) on 2026-10-24, correcting an earlier wrong
+claim that it had none; MangaPark was dropped as precarious in
+community notes.
 
 ## Known remaining Mihon references (not user-facing branding)
 

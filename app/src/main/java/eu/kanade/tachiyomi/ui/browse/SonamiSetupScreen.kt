@@ -10,10 +10,11 @@ package eu.kanade.tachiyomi.ui.browse
 // appear in unified Browse. Installed state is re-checked every time this
 // screen is opened.
 // Shipped set (Keiyoushi index checked 2026-10-24): Asura Scans,
-// MangaDex, MangaFire, MangaPark, ManhuaPlus. Swaps from the original
+// MangaDex, MangaFire, MangaKakalot, ManhuaPlus. Swap from the original
 // "famous 5" list: Comick has no main Keiyoushi extension (only an
-// "Unoriginal" mirror) so MangaFire takes its place, and MangaKakalot has
-// no Keiyoushi extension at all so MangaPark takes its place.
+// "Unoriginal" mirror) so MangaFire takes its place. MangaKakalot was
+// verified in the live Keiyoushi index (v1.6.26); MangaPark was dropped
+// as precarious in community notes.
 
 import android.content.Intent
 import android.widget.Toast
@@ -54,7 +55,7 @@ val SONAMI_BUNDLED_EXTENSIONS = listOf(
     SonamiBundledExtension("Asura Scans", "eu.kanade.tachiyomi.extension.en.asurascans", "1.6.69", "asurascans.apk"),
     SonamiBundledExtension("MangaDex", "eu.kanade.tachiyomi.extension.all.mangadex", "1.6.0", "mangadex.apk"),
     SonamiBundledExtension("MangaFire", "eu.kanade.tachiyomi.extension.all.mangafire", "1.6.34", "mangafire.apk"),
-    SonamiBundledExtension("MangaPark", "eu.kanade.tachiyomi.extension.en.mangaparktv", "1.6.55", "mangapark.apk"),
+    SonamiBundledExtension("MangaKakalot", "eu.kanade.tachiyomi.extension.en.mangakakalot", "1.6.26", "mangakakalot.apk"),
     SonamiBundledExtension("ManhuaPlus", "eu.kanade.tachiyomi.extension.en.manhuaplus", "1.6.63", "manhuaplus.apk"),
 )
 
