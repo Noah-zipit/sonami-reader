@@ -145,9 +145,11 @@ object HomeScreen : Screen() {
                             Tab.Updates -> UpdatesTab
                             Tab.History -> HistoryTab
                             is Tab.Browse -> {
-                                if (it.toExtensions) {
-                                    BrowseTab.showExtension()
-                                }
+                                // SONAMI: the Extensions tab no longer exists in
+                                // normal use (hidden behind the 7-tap unlock in
+                                // More), so a toExtensions request just opens
+                                // Browse. The old BrowseTab.showExtension()
+                                // channel was removed with the tab.
                                 BrowseTab
                             }
                             is Tab.More -> MoreTab
