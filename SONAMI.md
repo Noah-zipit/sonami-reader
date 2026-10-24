@@ -106,6 +106,26 @@ Next attempt must fix the task name first, then solve platform 37
 (newer cmdline-tools / preview package, or a compileSdk 36 test build
 - a test only, not a silent downgrade of the shipped fork).
 
+## Kaggle build failure 2, 2026-10-25 00:10 PKT (verified)
+Corrected task assembleRelease -Pdist=ci ran 184 actionable tasks
+(142 executed) in 10m 36s, then failed at
+:app:processReleaseGoogleServices: "No matching client found for
+package name 'com.sonamidex' in app/google-services.json".
+Root cause: the shipped google-services.json still names Mihon's
+packages (app.mihon, app.mihon.debug), and -Pdist=ci enables
+telemetry, which applies the google-services plugin. Do NOT just
+rename the package in that file: that would send Sonami crash data
+to Mihon's Firebase project.
+Correct fix: build with NO -Pdist flag (distribution LOCAL):
+includeTelemetry is then false, the google-services plugin is not
+applied, and assembleRelease keeps the exact package com.sonamidex
+(no .foss suffix, unlike assembleFoss). Updater is disabled in
+LOCAL, which is acceptable for a first test APK.
+Platform note from this run: canary sdkmanager lists
+platforms;android-37.0 and platforms;android-37.1 (not android-37
+or android-CinnamonBun). Compilation still reached 142 tasks, so
+AGP resolved the platform; the platform name is not the blocker.
+
 ## Build blocker, 2026-10-25 (verified, environment, not code)
 
 No APK could be produced in this subagent context. Root cause, proven
