@@ -3,5 +3,7 @@
     <color name="splash">@color/accent_blue</color>
 
     <color name="accent_blue">#0058A0</color>
+    <!-- SONAMI: adaptive launcher icon background (matches legacy icon). -->
+    <color name="ic_launcher_background">#201C51</color>
     <color name="icon_background">#FAFAFA</color>
 </resources>

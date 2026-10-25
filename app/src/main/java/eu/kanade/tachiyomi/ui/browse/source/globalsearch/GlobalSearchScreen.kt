@@ -19,6 +19,11 @@ import tachiyomi.presentation.core.screens.LoadingScreen
 class GlobalSearchScreen(
     val searchQuery: String = "",
     private val extensionFilter: String? = null,
+    // SONAMI: when true, this search starts with the "All sources" filter
+    // instead of Mihon's default "Pinned only". Sonami's Famous 5 are not
+    // pinned, so the default made Sonami searches return only Local source.
+    // Defaults to false, so every other Mihon call site is unchanged.
+    private val searchAllSources: Boolean = false,
 ) : Screen() {
 
     @Composable
@@ -29,6 +34,16 @@ class GlobalSearchScreen(
             assistedMetroViewModel<GlobalSearchViewModel, GlobalSearchViewModel.Factory> {
                 create(initialQuery = searchQuery, initialExtensionFilter = extensionFilter)
             }
+        // SONAMI: the ViewModel already ran its initial search with the
+        // PinnedOnly default; flipping the filter re-runs the search (the
+        // ViewModel cancels the previous search job) across all sources.
+        // This runs once per screen, so a manual filter change by the user
+        // afterwards is not overridden.
+        LaunchedEffect(searchAllSources) {
+            if (searchAllSources && searchQuery.isNotBlank()) {
+                viewModel.setSourceFilter(SourceFilter.All)
+            }
+        }
         val state by viewModel.state.collectAsState()
         var showSingleLoadingScreen by remember {
             mutableStateOf(searchQuery.isNotEmpty() && !extensionFilter.isNullOrEmpty() && state.total == 1)
