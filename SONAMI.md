@@ -5,15 +5,20 @@ Javier Tomás, 2024 Mihon Open Source Project). All Apache 2.0 licence and
 copyright notices are kept; files changed for Sonami are marked with a
 `SONAMI` comment at the top or at the changed block.
 
+Sonami's own version is 1.0.0 (versionCode 39). The "v0.21.2" above is
+the Mihon version it was forked from, not Sonami's version.
+
 ## What changed from Mihon
 
 - Package: `app.mihon` -> `com.sonamidex`. App name: Mihon -> Sonami.
   The internal Kotlin package `eu.kanade.tachiyomi` is unchanged (renaming
   it would break the extension ABI and every internal reference).
-- Launcher icon: the moon-and-dragon icon (pure graphic, no letters), in
-  `res/mipmap-*/ic_launcher.png`. The in-app mark is the white
-  moon-and-dragon symbol in `res/drawable-nodpi/ic_sonami_mark.png`.
-  The old Mihon glyph vector (`ic_mihon.xml`) now points at that mark.
+- Launcher icon: the moon-and-dragon icon (pure graphic, no letters),
+  as a proper adaptive icon (indigo background, transparent moon-mark
+  foreground) plus rounded legacy PNGs in `res/mipmap-*/ic_launcher.png`.
+  The in-app mark is the white moon-and-dragon symbol in
+  `res/drawable-nodpi/ic_sonami_mark.png`. The old Mihon glyph vector
+  (`ic_mihon.xml`) now points at that mark.
 - Updates tab -> "Ch Update" (`label_recent_updates` string).
 - More screen: redesigned as grouped cards (Reading / Library / App),
   Sonami moon-mark header, indigo default theme (see
@@ -23,9 +28,20 @@ copyright notices are kept; files changed for Sonami are marked with a
   GitHub and X, and Mihon donation/Discord links were removed.
 - Browse: Mihon's Sources / Extensions / Migrate tabs are removed from
   normal use. `BrowseTab` is now one unified screen
-  (`SonamiBrowseScreen.kt`): one search across all installed sources
-  (Mihon's global search) plus the installed sources' popular listings.
-  A title opened from there can be added to the library as usual.
+  (`SonamiBrowseScreen.kt` + `SonamiSourceGrid.kt`): a compact search
+  row at the top, a row of source chips, and below them the selected
+  source's Popular titles as a cover grid, with Popular / Latest /
+  Filter chips exactly like a source's own browse page. Tapping a
+  source chip switches the grid to that source; tapping a title opens
+  its detail page so it can be added to the library. The source list
+  comes from all loaded extension sources (`SourceManager.sources`),
+  not from the enabled-languages list, so the Famous 5 show as soon as
+  their extensions are loaded.
+- Search: Sonami's search uses all installed sources
+  (`GlobalSearchScreen` with `searchAllSources = true`), not Mihon's
+  default pinned-only filter, because the Famous 5 are not pinned by
+  default. Other Mihon search entry points keep the pinned-only
+  default.
 - Donation campaign removed: Mihon's in-app donation banner in
   `MainActivity` (`ShowDonationCampaign`) is deleted, along with its
   donation/Support Us strings in `strings.xml` and the orphaned
@@ -66,6 +82,41 @@ Keiyoushi index (v1.6.26) on 2026-10-24, correcting an earlier wrong
 claim that it had none; MangaPark was dropped as precarious in
 community notes.
 
+## Extension trust: Keiyoushi store seeding
+
+Mihon only loads an extension if it is trusted: either its signature
+matches a registered extension store's signing key, or the user tapped
+Trust on it. Sideloaded Keiyoushi APKs therefore used to land in
+"Not loaded" as Untrusted. Sonami fixes this in `SonamiSetupViewModel`:
+the first time Setup opens, it registers the official Keiyoushi
+extension store (index
+`https://raw.githubusercontent.com/keiyoushi/extensions/repo/index.json`)
+if it is not already registered, and the fetched index supplies the
+signing key — no signing key is hardcoded in Sonami code and no trust
+preference is written directly. Once the store is registered, the
+Famous 5 trust automatically and load without tapping Trust on each
+one. If Setup cannot reach the internet on first open, the store is
+not registered and the fallback is the manual route: open the hidden
+Extensions screen and tap Trust on each extension.
+
+## Setup flow (1.0.0)
+
+- Install permission: if Android's "allow installs from Sonami" setting
+  is off, Setup shows a card with a button that opens that system
+  setting. The card disappears once the permission is granted.
+- Installed state is re-checked when returning from the installer
+  (on resume), not at tap time, so an install that just completed
+  shows as installed.
+- Sequential install: Setup offers the first not-yet-installed
+  extension as "Next: install X". It never auto-launches the
+  installer on return, so a declined install cannot loop.
+- All-installed state: when all five show installed, Setup shows
+  "All 5 installed — go to Browse".
+- Pinning: when a Famous 5 source becomes installed, its source id is
+  added to the pinned sources, so Mihon's pinned-only search paths
+  also cover it. Pinning happens only in the Setup flow, never on
+  Browse open, so a user unpin is not re-applied by browsing.
+
 ## Known remaining Mihon references (not user-facing branding)
 
 - Deep help links inside Settings (storage FAQ, tracking guide),
@@ -79,77 +130,19 @@ community notes.
 
 ## Building
 
-Requires JDK 21, Android SDK platform 37 (compileSdk 37.2), build-tools
+Requires JDK 21, Android SDK platform 37 (compileSdk 37), build-tools
 36, NDK 29.0.14206865 (see `gradle/mihon.versions.toml`). Build with
-`./gradlew assembleRelease -Pdist=ci` (Mihon CI, build.yml) or
-`./gradlew assembleFoss -Pdist=foss`. There is NO
-`assembleStandardRelease` task: the app defines no product flavors,
-only build types debug/release/foss/nightly/benchmark, so
-`assembleStandardRelease` fails with "task not found" (proven on
-Kaggle 2026-10-24).
-The build is unsigned debug-style unless a keystore is supplied; the
-APK in `app/build/outputs/apk/` is a development build, not a release
-signed for distribution.
+`./gradlew assembleRelease` and NO `-Pdist` flag: without a
+distribution flag, telemetry is off and the google-services plugin is
+not applied, which matters because the shipped `google-services.json`
+still names Mihon's packages — do NOT rename the package in that file,
+as that would send Sonami crash data to Mihon's Firebase project.
+There is NO `assembleStandardRelease` task: the app defines no product
+flavors, only build types debug/release/foss/nightly/benchmark.
 
-## Kaggle build failure, 2026-10-24 23:48 PKT (verified)
-Notebook (private, unpublished, Kaggle user Noah Ext) ran with
-Internet ON, CPU. Two separate failures, no APK produced:
-1. Android SDK platform 37 UNAVAILABLE via sdkmanager, stable and
-   channel 3 (canary) both: "Failed to find package
-   'platforms;android-37'", no platforms/ directory created.
-   Platform 37 is Android 17, "Cinnamon Bun Preview" in Android
-   Studio's SDK Manager, not a stable platform package.
-2. Gradle task name wrong: `./gradlew :app:assembleStandardRelease`
-   failed "task 'assembleStandardRelease' not found in project ':app'"
-   (Gradle 9.8.1, 2m 44s). Correct task is assembleRelease (see above).
-Next attempt must fix the task name first, then solve platform 37
-(newer cmdline-tools / preview package, or a compileSdk 36 test build
-- a test only, not a silent downgrade of the shipped fork).
-
-## Kaggle build failure 2, 2026-10-25 00:10 PKT (verified)
-Corrected task assembleRelease -Pdist=ci ran 184 actionable tasks
-(142 executed) in 10m 36s, then failed at
-:app:processReleaseGoogleServices: "No matching client found for
-package name 'com.sonamidex' in app/google-services.json".
-Root cause: the shipped google-services.json still names Mihon's
-packages (app.mihon, app.mihon.debug), and -Pdist=ci enables
-telemetry, which applies the google-services plugin. Do NOT just
-rename the package in that file: that would send Sonami crash data
-to Mihon's Firebase project.
-Correct fix: build with NO -Pdist flag (distribution LOCAL):
-includeTelemetry is then false, the google-services plugin is not
-applied, and assembleRelease keeps the exact package com.sonamidex
-(no .foss suffix, unlike assembleFoss). Updater is disabled in
-LOCAL, which is acceptable for a first test APK.
-Platform note from this run: canary sdkmanager lists
-platforms;android-37.0 and platforms;android-37.1 (not android-37
-or android-CinnamonBun). Compilation still reached 142 tasks, so
-AGP resolved the platform; the platform name is not the blocker.
-
-## Build blocker, 2026-10-25 (verified, environment, not code)
-
-No APK could be produced in this subagent context. Root cause, proven
-by a raw-socket test: the sandbox intercepts Java TCP connections and
-answers with a block message ("Other TCP connections is turned off for
-this assistant"). Consequences, all reproduced:
-- Gradle wrapper cannot download Gradle 9.8.1 (Java HttpURLConnection
-  tunnelling fails with NoSuchElementException on the empty response).
-- Gradle cannot start at all — even `--no-daemon` forks a single-use
-  daemon and fails with "Could not dispatch a message to the daemon",
-  because daemon IPC is a localhost TCP socket.
-- sdkmanager cannot fetch any repository (same Java tunnelling failure).
-- Gradle dependency downloads would fail the same way.
-Independently, this VM also lacks the exact toolchain: Android platform
-37 is absent from Google's stable repository XML (max is android-36);
-AGP 9.4.1 and Gradle 9.8.1 are in no local cache (the local mirror
-`~/workspace/android-tools/localrepo` tops out at AGP 8.11.1, cached
-Gradle tops out at 9.3.1).
-What unblocks it, in order: (1) run the Gradle build from the
-parent/main-agent context or any machine with normal Java networking,
-with platform 37 / build-tools 36 / NDK 29 installed (or the
-preview/canary repository URL that actually hosts platform 37); (2)
-only then fix any compile or Spotless errors in the new Kotlin files
-(they have NOT been compile-checked) and run the APK verification
-tests. Downgrading to the cached SDK 35 / AGP 8.11.1 / Gradle 9.3.1 was
-NOT done — it would be a large port (AGP 9 DSL, e.g. minorApiLevel,
-does not exist in AGP 8) and would no longer be the v0.21.2 fork.
+The release APK is arm64-only (`app-arm64-v8a-release.apk`, ~26 MB),
+copied to the release as `sonami.apk`. Public releases must be signed
+with a private release keystore: the test builds so far were signed
+with Android's default debug key, which is public and must never be
+used for a published release, because anyone holding it could sign a
+fake Sonami update that users' phones would accept.
